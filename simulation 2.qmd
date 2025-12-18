@@ -1,0 +1,121 @@
+---
+title: "simulation code wealth and math score "
+format: html
+editor: visual
+---
+
+## Quarto
+
+
+converted dropout to a binary indicator for the following steps. 
+```{r}
+library(dplyr)
+
+df <- read.csv("/Users/sanaakashif/Desktop/ds/young_lives_dropout_r3_r4.csv")
+
+# Ensure dropout is binary 0/1
+df <- df %>%
+  mutate(dropout = as.numeric(dropout))
+
+```
+
+estimated a logistic model to find relationship between dropout, wealth and math scores. 
+```{r}
+baseline_model <- glm(
+  dropout ~ wi + math,
+  data = df,
+  family = binomial(link = "logit")
+)
+
+summary(baseline_model)
+
+```
+This next chunk generates predicted probabilities for each child under observed baseline conditions. The outcome tells us the predicted dropout rate given currednt distribution of wealth and test scores. 
+
+```{r}
+df <- df %>%
+  mutate(p_hat = predict(baseline_model, newdata = df, type = "response"))
+
+baseline_dropout <- mean(df$p_hat, na.rm = TRUE)
+baseline_dropout
+
+
+```
+simulation one : increase wealth index by .5 SD 
+```{r}
+
+df_sim_wi <- df %>%
+  mutate(wi = wi + 0.5)
+
+df_sim_wi$p_hat <- predict(
+  baseline_model,
+  newdata = df_sim_wi,
+  type = "response"
+)
+
+dropout_wi <- mean(df_sim_wi$p_hat, na.rm = TRUE)
+dropout_wi
+
+```
+SIMULATION TWO: increase math score by 5 points 
+```{r}
+df_sim_math <- df %>%
+  mutate(math = math + 5)
+
+df_sim_math$p_hat <- predict(
+  baseline_model,
+  newdata = df_sim_math,
+  type = "response"
+)
+
+dropout_math <- mean(df_sim_math$p_hat, na.rm = TRUE)
+dropout_math
+
+```
+simulation three: increasing math and wealth 
+
+```{r}
+df_sim_both <- df %>%
+  mutate(
+    wi = wi + 0.5,
+    math = math + 5
+  )
+
+df_sim_both$p_hat <- predict(
+  baseline_model,
+  newdata = df_sim_both,
+  type = "response"
+)
+
+dropout_both <- mean(df_sim_both$p_hat, na.rm = TRUE)
+dropout_both
+
+```
+table for putting all the outputs into a table 
+
+```{r}
+results <- tibble(
+  scenario = c(
+    "Baseline",
+    "Wealth +0.5 SD",
+    "Math +5 points",
+    "Wealth +0.5 SD & Math +5"
+  ),
+  predicted_dropout = c(
+    baseline_dropout,
+    dropout_wi,
+    dropout_math,
+    dropout_both
+  ),
+  change_pp = 100 * c(
+    0,
+    dropout_wi - baseline_dropout,
+    dropout_math - baseline_dropout,
+    dropout_both - baseline_dropout
+  )
+)
+
+results
+
+```
+
