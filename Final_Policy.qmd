@@ -25,26 +25,23 @@ execute:
 bibliography: references.bib
 ---
 
-## 
-
 ## Executive Summary
 
 This study investigates predictors of school dropout among adolescents in India and Peru using longitudinal data from the Young Lives study. We employ a mixed-methods approach combining logistic regression, machine learning with class imbalance techniques, and policy simulation through sensitivity analysis.
 
-**Sample:** We analyze 1,678 children with complete data from both Round 3 (age \~12) and Round 4 (age \~15), drawn from an initial sample of 3,874 children. High study attrition (55.5%) limits generalizability, but our complete-case analysis provides valid estimates for children who remained in the study.
+**Sample:** We analyze 1,678 children with complete data from both Round 3 (age \~12) and Round 4 (age \~15), drawn from an initial sample of 3,874 children. High study attrition (55.5%) limits generalizability, but our complete case analysis provides valid estimates for children who remained in the study.
 
 **Key Findings:**
 
 -   **Rare outcome challenge:** Only 21 children (1.25%) dropped out between rounds, requiring specialized techniques
--   **Math score has strong effects:** 5-point increase predicts 0.8 percentage point dropout decrease
+-   **Math score has strong effects:** 5 point increase predicts 0.8 percentage point dropout decrease
 -   **Wealth matters:** 0.5 SD wealth increase predicts 0.6 percentage point dropout decrease\
--   **Household size effects:** 2-person reduction predicts 0.87 percentage point dropout decrease
+-   **Household size effects:** 2 person reduction predicts 0.87 percentage point dropout decrease
 -   **Nutrition effects:** 10% BMI improvement predicts 0.29 percentage point dropout decrease
 -   **Combined interventions most effective:** Simultaneous improvements in multiple factors produce larger effects
 
-**Policy Implications:** Our sensitivity analysis suggests that multifaceted interventions addressing economic security, academic support, and household nutrition may be most effective for dropout prevention.
-
-**Technical Achievement:** Despite extreme class imbalance (98.75% non-dropout), we successfully demonstrate both parametric and machine learning approaches, showing how different methods handle rare outcomes.
+**Policy Implications:** \
+**Technical Achievement:**
 
 # Introduction
 
