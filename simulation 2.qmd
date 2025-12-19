@@ -6,8 +6,8 @@ editor: visual
 
 ## Quarto
 
+converted dropout to a binary indicator for the following steps.
 
-converted dropout to a binary indicator for the following steps. 
 ```{r}
 library(dplyr)
 
@@ -19,7 +19,8 @@ df <- df %>%
 
 ```
 
-estimated a logistic model to find relationship between dropout, wealth and math scores. 
+estimated a logistic model to find relationship between dropout, wealth and math scores.
+
 ```{r}
 baseline_model <- glm(
   dropout ~ wi + math,
@@ -30,7 +31,8 @@ baseline_model <- glm(
 summary(baseline_model)
 
 ```
-This next chunk generates predicted probabilities for each child under observed baseline conditions. The outcome tells us the predicted dropout rate given currednt distribution of wealth and test scores. 
+
+This next chunk generates predicted probabilities for each child under observed baseline conditions. The outcome tells us the predicted dropout rate given current distribution of wealth and test scores.
 
 ```{r}
 df <- df %>%
@@ -41,7 +43,9 @@ baseline_dropout
 
 
 ```
-simulation one : increase wealth index by .5 SD 
+
+simulation one : increase wealth index by .5 SD
+
 ```{r}
 
 df_sim_wi <- df %>%
@@ -57,7 +61,9 @@ dropout_wi <- mean(df_sim_wi$p_hat, na.rm = TRUE)
 dropout_wi
 
 ```
-SIMULATION TWO: increase math score by 5 points 
+
+SIMULATION TWO: increase math score by 5 points
+
 ```{r}
 df_sim_math <- df %>%
   mutate(math = math + 5)
@@ -72,7 +78,8 @@ dropout_math <- mean(df_sim_math$p_hat, na.rm = TRUE)
 dropout_math
 
 ```
-simulation three: increasing math and wealth 
+
+simulation three: increasing math and wealth
 
 ```{r}
 df_sim_both <- df %>%
@@ -91,7 +98,8 @@ dropout_both <- mean(df_sim_both$p_hat, na.rm = TRUE)
 dropout_both
 
 ```
-table for putting all the outputs into a table 
+
+code for putting all the outputs into a table
 
 ```{r}
 results <- tibble(
@@ -118,4 +126,3 @@ results <- tibble(
 results
 
 ```
-

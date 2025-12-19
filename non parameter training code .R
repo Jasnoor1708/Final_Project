@@ -52,3 +52,25 @@ imp_sorted <- imp[order(imp[, 2], decreasing = TRUE), ]
 
 print(imp_sorted)
 
+
+#code to put output into a table 
+# Extract importance
+imp <- importance(rf_model)
+
+# Convert to data frame
+imp_table <- data.frame(
+  Variable = rownames(imp),
+  MeanDecreaseAccuracy = imp[, "MeanDecreaseAccuracy"],
+  MeanDecreaseGini = imp[, "MeanDecreaseGini"]
+)
+
+# Sort by Gini importance (most intuitive)
+imp_table <- imp_table[order(imp_table$MeanDecreaseGini, decreasing = TRUE), ]
+
+# Reset row names
+rownames(imp_table) <- NULL
+
+# View table
+imp_table
+
+
