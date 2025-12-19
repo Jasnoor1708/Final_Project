@@ -1,0 +1,703 @@
+---
+title: "Predicting School Dropout in Developing Countries"
+subtitle: "A Machine Learning Approach with Policy Simulations Using Longitudinal Data from India and Peru"
+author: 
+  - "Jasnoor Anand"
+  - "Sanna Kashif"
+  - "Mehria Saadat Khan"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: show
+    code-tools: true
+    theme: cosmo
+    number-sections: true
+    fig-width: 10
+    fig-height: 6
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+  echo: true
+bibliography: references.bib
+---
+
+## Executive summary
+
+This study investigates the predictors of school dropout among adolescents in India and Peru using longitudinal data from the Young Lives study. We employ a mixed-methods approach combining parametric modeling, machine learning with class imbalance techniques, and policy simulation through sensitivity analysis. Our findings reveal that household size has a larger predicted impact on dropout than individual health measures like BMI, suggesting that family planning and household support programs may be important complements to traditional education and nutrition interventions. Despite working with a rare outcome (1.41% dropout rate), we demonstrate multiple advanced analytical techniques including balanced random forests, simulation modeling, and comparative model evaluation.
+
+**Key Findings:**
+
+\- Reducing household size by 2 people predicts a 0.87 percentage point decrease in dropout probability
+- Improving nutrition (10% BMI increase) predicts a 0.29 percentage point decrease in dropout
+- Machine learning models with class weights outperform standard parametric approaches for rare event prediction
+- Study attrition (56% in Peru, 55% in India) limits generalizability but our complete-case analysis provides valid estimates for tracked children
+
+# Introduction
+
+## Motivation and Policy Context 
+
+Education is widely recognized as a fundamental driver of economic development and social mobility. While global primary school enrollment rates have reached historic highs, with nearly 90% of children worldwide attending primary school, keeping children in school through adolescence remains a significant challenge in developing countries (UNESCO, 2021). The transition from primary to secondary education represents a critical juncture where dropout rates spike, particularly in low and middle-income countries.
+
+Understanding what predicts school dropout is not just an academic exercise. It has direct implications for how governments and NGOs allocate resources. Should we invest more in nutrition programs? Cash transfers to reduce household economic stress? Family planning initiatives? The answer depends on which factors actually drive dropout decisions, and more importantly, how much changing those factors would matter.
+
+## Research Questions
+
+This study addresses three interconnected questions:
+
+1. **Prediction**: What factors best predict which children will drop out of school between ages 12 and 15 in India and Peru?
+
+2. **Methodology**: How can we build effective predictive models when the outcome (dropout) is rare, affecting only 1-2% of our sample?
+
+3. **Policy simulation**: If we could intervene to change modifiable risk factors like nutrition or household size, how much would predicted dropout rates change?
+
+## Contribution 
+
+This project makes several contributions:
+
+**Methodologically**, we demonstrate how to handle severe class imbalance in a policy-relevant context, comparing parametric and machine learning approaches. We show that standard techniques fail with rare outcomes, but specialized methods (class weighting, balanced forests) can extract meaningful patterns.
+
+**Substantively**, we provide evidence on the relative importance of different risk factors for adolescent dropout in two major developing countries. Our sensitivity analysis translates statistical associations into predicted policy impacts, offering a template for evidence-based decision making.
+
+**Technically**, we showcase best practices in reproducible data science, including proper longitudinal data merging, handling of study attrition, and transparent documentation of all analytical decisions.
+
+# Data 
+
+## The Young Lives Study 
+
+We use data from Young Lives, a longitudinal study tracking children in four developing countries (Ethiopia, India, Peru, and Vietnam) from early childhood through young adulthood. The study began in 2001-2002 and has conducted five rounds of data collection. Young Lives is one of the most comprehensive longitudinal datasets available on child development in the Global South, making it ideal for studying educational trajectories.
+
+For this analysis, we focus on the **Younger Cohort** in **India and Peru** - children born around 2001-2002 who were surveyed at:
+- **Round 3 (2009)**: Age approximately 8 years old
+- **Round 4 (2013)**: Age approximately 12 years old
+
+We chose these two countries because they represent different geographic and cultural contexts within the developing world, allowing us to examine whether patterns are consistent across settings.
+
+## Sample Construction and Attrition
+
+Our sample construction involved several steps:
+
+### Initial Sample
+
+\- **India Round 3**: 1,931 children
+- **Peru Round 3**: 1,943 children
+- **Total Round 3**: 3,874 children
+
+### Study Attrition
+
+A major challenge in longitudinal research is attrition: participants who are surveyed in one round but cannot be found or decline to participate in subsequent rounds. In our data:
+
+- **India**: 1,066 children (55.2%) surveyed in Round 3 have missing Round 4 data
+- **Peru**: 1,085 children (55.8%) surveyed in Round 3 have missing Round 4 data
+- **Total attrition**: 2,151 children (55.5%)
+
+This high attrition rate is concerning but not unusual for longitudinal studies in developing countries where families are highly mobile. Attrition can bias results if children who drop out of the study are systematically different from those who remain. We discuss this limitation in detail later.
+
+### Analytical Sample
+
+After accounting for attrition and missing data on key variables:
+- **Analytical sample**: 1,678 children with complete data in both rounds
+- **Complete case analysis**: We use only children with complete information on all predictor variables
+
+```{r}
+#| label: setup
+#| echo: false
+#| output: false
+
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(randomForest)
+library(tidyr)
+library(patchwork)
+
+data <- read_csv("young_lives_dropout_r3_r4.csv", show_col_types = FALSE)
+
+
+```
+
+```{r}
+#| label: sample-summary
+#| echo: false
+#| tbl-cap: "Sample Composition and Attrition"
+
+sample_summary <- data.frame(
+  Country = c("India", "Peru", "Combined"),
+  Round_3_Total = c(1931, 1943, 3874),
+  Round_4_Available = c(865, 858, 1723),
+  Attrition_N = c(1066, 1085, 2151),
+  Attrition_Pct = c("55.2%", "55.8%", "55.5%")
+)
+
+kable(sample_summary, 
+      col.names = c("Country", "Round 3 Total", "Round 4 Available", 
+                    "Missing Round 4", "Attrition Rate"),
+      align = c("l", "r", "r", "r", "r"))
+```
+
+## 
+
+## Outcome Variable: Dropout
+
+We define **dropout** as a binary outcome where we compare a child's enrollment status between Round 3 (age 12) and Round 4 (age 15).
+
+**A child is coded as:**
+
+-   **Dropout = 1 (YES)**: The child was enrolled in school at Round 3 but was not enrolled by Round 4
+-   **Dropout = 0 (NO)**: The child was enrolled in school at both Round 3 and Round 4 (stayed in school)
+-   **Dropout = Missing**: We can't determine dropout status if:
+    -   The child wasn't enrolled at Round 3 (you can't drop out if you were never in school)
+    -   We don't have Round 4 data for that child (we can't tell what happened)
+
+This is a **conservative definition** that captures true dropout among children who were successfully enrolled. We exclude children who were never enrolled in Round 3 (out of scope for our study) and those with missing Round 4 data (we simply don't know if they dropped out or not).
+
+### Dropout Rates
+
+```{r}
+#| label: dropout-rates
+#| echo: false
+
+# dropout rates by country
+dropout_summary <- data %>%
+  filter(!is.na(dropout)) %>%
+  group_by(country) %>%
+  summarise(
+    Total = n(),
+    Enrolled_R3 = sum(enrolled_r3 == 1, na.rm = TRUE),
+    Enrolled_R4 = sum(enrolled_r4 == 1, na.rm = TRUE),
+    Dropouts = sum(dropout == 1, na.rm = TRUE),
+    Dropout_Rate = round(mean(dropout, na.rm = TRUE) * 100, 2)
+  )
+
+# combined row
+combined_row <- data %>%
+  filter(!is.na(dropout)) %>%
+  summarise(
+    country = "Combined",
+    Total = n(),
+    Enrolled_R3 = sum(enrolled_r3 == 1, na.rm = TRUE),
+    Enrolled_R4 = sum(enrolled_r4 == 1, na.rm = TRUE),
+    Dropouts = sum(dropout == 1, na.rm = TRUE),
+    Dropout_Rate = round(mean(dropout, na.rm = TRUE) * 100, 2)
+  )
+
+dropout_summary <- bind_rows(dropout_summary, combined_row)
+
+kable(dropout_summary,
+      col.names = c("Country", "Sample Size", "Enrolled R3", 
+                    "Enrolled R4", "Dropouts", "Dropout Rate (%)"),
+      caption = "Dropout Rates by Country")
+```
+
+### 
+
+**Key observations:**
+
+- **Overall dropout rate**: 1.41% (24 dropouts among 1,702 children)
+- **India**: 2.58% (22 dropouts among 852 children)
+- **Peru**: 0.24% (2 dropouts among 850 children)
+
+The low dropout rate, especially in Peru, presents a significant **class imbalance challenge** for predictive modeling. Standard machine learning algorithms struggle with such rare outcomes because they can achieve high accuracy by simply predicting "no dropout" for everyone.
+
+## Predictor Variables
+
+We selected five key predictor variables based on prior literature on educational attainment in developing countries and data availability:
+
+### 1. Body Mass Index (BMI)
+
+**Rationale**: Nutrition and health status affect children's ability to attend and succeed in school. Malnutrition is associated with fatigue, illness, and cognitive difficulties.
+
+**Measurement**: Continuous variable, calculated from measured height and weight.
+
+**Policy relevance**: School feeding programs, nutrition supplementation.
+
+### 2. Household Size
+
+**Rationale**: Larger households mean more competition for resources and potentially more pressure for older children to work or care for siblings.
+
+**Measurement**: Count of household members.
+
+**Policy relevance**: Family planning programs, household support services.
+
+### 3. Wealth Index
+
+**Rationale**: Economic constraints are a primary driver of dropout, as poor families may need children to work or cannot afford school-related costs.
+
+**Measurement**: Composite index based on household assets, housing quality, and access to services. Higher values indicate greater wealth.
+
+**Policy relevance**: Cash transfer programs, poverty reduction initiatives.
+
+### 4. Math Score
+
+**Rationale**: Academic performance is both a predictor and early warning sign of dropout risk. Children who struggle academically are more likely to disengage.
+
+**Measurement**: Standardized test score from Round 3 assessments.
+
+**Policy relevance**: Remedial education, tutoring programs, early intervention systems.
+
+### 5. Height-for-Age Z-Score (ZHFA)
+
+**Rationale**: Stunting (low height-for-age) reflects chronic malnutrition and poor early childhood conditions, with lasting effects on cognitive development.
+\
+**Measurement**: Z-score calculated relative to WHO growth standards. Negative values indicate stunting.
+
+**Policy relevance**: Early childhood nutrition, maternal health programs.
+
+### Descriptive Statistics
+
+```{r}
+#| label: descriptive-stats
+#| echo: false
+#| tbl-cap: "Descriptive Statistics for Predictor Variables"
+
+# descriptive statistics
+model_data <- data %>%
+  filter(!is.na(dropout), !is.na(bmi), !is.na(hhsize), 
+         !is.na(wi), !is.na(math), !is.na(zhfa))
+
+desc_stats <- model_data %>%
+  select(bmi, hhsize, wi, math, zhfa) %>%
+  pivot_longer(everything(), names_to = "Variable", values_to = "Value") %>%
+  group_by(Variable) %>%
+  summarise(
+    N = n(),
+    Mean = round(mean(Value, na.rm = TRUE), 2),
+    SD = round(sd(Value, na.rm = TRUE), 2),
+    Min = round(min(Value, na.rm = TRUE), 2),
+    Median = round(median(Value, na.rm = TRUE), 2),
+    Max = round(max(Value, na.rm = TRUE), 2)
+  )
+
+
+desc_stats$Variable <- c("BMI", "Household Size", "Math Score", 
+                         "Wealth Index", "Height-for-Age Z-Score")
+
+kable(desc_stats)
+```
+
+### 
+
+```{r}
+#| label: missing-data
+#| echo: false
+
+# missing data
+missing_summary <- data %>%
+  summarise(
+    BMI = sum(is.na(bmi)),
+    `Household Size` = sum(is.na(hhsize)),
+    `Wealth Index` = sum(is.na(wi)),
+    `Math Score` = sum(is.na(math)),
+    `Height-for-Age Z-Score` = sum(is.na(zhfa))
+  ) %>%
+  pivot_longer(everything(), names_to = "Variable", values_to = "Missing") %>%
+  mutate(
+    Total = nrow(data),
+    Missing_Pct = round(Missing / Total * 100, 1)
+  )
+
+kable(missing_summary, 
+      col.names = c("Variable", "Missing (N)", "Total", "Missing (%)"),
+      caption = "Missing Data Summary")
+```
+
+**Missing data is minimal** for our key variables (all under 3%), allowing us to use complete case analysis without substantial loss of sample size or introduction of bias from imputation.
+
+# Methods
+
+## Overview of Analytical Strategy
+
+Our analysis proceeds in three stages:
+
+1. **Parametric Baseline Models**: Logistic regression to establish interpretable baseline predictions
+2. **Machine Learning with Class Imbalance Techniques**: Random forests with specialized methods to handle rare outcomes
+3. **Policy Simulation via Sensitivity Analysis**: Simulating changes in predictors to estimate policy impacts
+
+This multi-method approach allows us to:
+- Compare different modeling strategies
+- Validate findings across approaches
+- Provide both interpretable coefficients (logistic) and optimized predictions (random forest)
+- Translate statistical associations into policy-relevant scenarios
+
+## Stage 1: Parametric Modeling (Logistic Regression)
+
+### Model Specification
+
+We estimate a logistic regression model where the outcome is the log-odds of dropout, predicted by our five focal variables (BMI, household size, wealth index, math score, height-for-age z-score) plus controls for sex and country. Standard errors are robust to heteroskedasticity.
+
+## Stage 2: Machine Learning with Class Imbalance
+
+### The Class Imbalance Problem
+
+With only 24 dropout cases among 1,678 observations in our analytical sample (1.43%), standard machine learning faces a fundamental problem: a model that predicts "no dropout" for every child achieves 98.6% accuracy! This creates three issues:
+
+1. **Overwhelming majority class**: The algorithm learns to predict the majority class
+2. **Limited learning signal**: Too few positive cases to identify meaningful patterns
+3. **Misleading performance metrics**: Accuracy is uninformative; we need metrics that focus on the minority class
+
+### Solution: Balanced Random Forest
+
+We use **random forests**: an ensemble method that builds many decision trees and aggregates their predictions, with **class weighting** to address imbalance.
+
+### Random Forest Basics
+
+Random forests work by:
+1. Drawing bootstrap samples from the data
+2. Building a decision tree on each sample
+3. At each split, considering only a random subset of predictors
+4. Averaging predictions across all trees
+
+This provides:
+- **Robustness**: Less sensitive to outliers than single models
+- **Non-linearity**: Can capture complex relationships without specifying functional form
+- **Variable importance**: Measures which predictors matter most\
+
+#### Class Weighting
+
+We implement class weighting by assigning different costs to misclassifications. We set the weight for the no dropout class to 1 and the dropout class to 50. This tells the algorithm: "Predicting dropout when it doesn't happen costs 1 unit; predicting no dropout when it does happen costs 50 units."
+
+With these weights, the model has strong incentive to correctly identify the rare dropout cases, even at the cost of some false positives.
+
+### Model Specification
+
+```{r}
+#| label: build-all-models
+#| echo: false
+#| output: false
+
+library(randomForest)
+library(dplyr)
+library(caret)
+
+# Prepare data
+model_data <- data %>%
+  filter(!is.na(dropout), !is.na(bmi), !is.na(hhsize),
+         !is.na(wi), !is.na(math), !is.na(zhfa), !is.na(sex))
+
+# Convert to factors
+model_data$dropout <- as.factor(model_data$dropout)
+model_data$sex <- as.factor(model_data$sex)
+model_data$country <- as.factor(model_data$country)
+
+# Split into train and test
+set.seed(1234)
+idx <- sample(seq_len(nrow(model_data)), size = 0.7 * nrow(model_data))
+train <- model_data[idx, ]
+test  <- model_data[-idx, ]
+
+# Count dropouts in each set
+train_dropout_count <- sum(train$dropout == 1)
+test_dropout_count <- sum(test$dropout == 1)
+
+# ============================================================
+# APPROACH 1: Standard Random Forest (will fail - just predicts 0)
+# ============================================================
+rf_standard <- randomForest(
+  dropout ~ bmi + hhsize + wi + math + zhfa + sex + country,
+  data = train,
+  ntree = 500,
+  importance = TRUE
+)
+
+pred_standard <- predict(rf_standard, test)
+conf_standard <- table(Predicted = pred_standard, Actual = test$dropout)
+
+# ============================================================
+# APPROACH 2: Random Forest with Class Weights
+# ============================================================
+rf_weighted <- randomForest(
+  dropout ~ bmi + hhsize + wi + math + zhfa + sex + country,
+  data = train,
+  ntree = 500,
+  classwt = c("0" = 1, "1" = 100),  # Heavy penalty for missing dropouts
+  importance = TRUE
+)
+
+pred_weighted <- predict(rf_weighted, test)
+conf_weighted <- table(Predicted = pred_weighted, Actual = test$dropout)
+
+# ============================================================
+# APPROACH 3: Downsampling (balance the classes)
+# ============================================================
+
+# Separate dropout and non-dropout cases
+train_dropout <- train[train$dropout == 1, ]
+train_no_dropout <- train[train$dropout == 0, ]
+
+# Downsample non-dropout to match dropout count
+set.seed(1234)
+train_no_dropout_sampled <- train_no_dropout[sample(nrow(train_no_dropout), 
+                                                      nrow(train_dropout) * 3), ]
+
+# Combine
+train_balanced <- rbind(train_dropout, train_no_dropout_sampled)
+
+# Build model on balanced data
+rf_balanced <- randomForest(
+  dropout ~ bmi + hhsize + wi + math + zhfa + sex + country,
+  data = train_balanced,
+  ntree = 500,
+  importance = TRUE
+)
+
+pred_balanced <- predict(rf_balanced, test)
+conf_balanced <- table(Predicted = pred_balanced, Actual = test$dropout)
+
+# ============================================================
+# Calculate metrics for each approach
+# ============================================================
+
+calculate_metrics <- function(conf_matrix) {
+  TP <- conf_matrix[2, 2]  # True Positive
+  TN <- conf_matrix[1, 1]  # True Negative
+  FP <- conf_matrix[2, 1]  # False Positive
+  FN <- conf_matrix[1, 2]  # False Negative
+  
+  accuracy <- (TP + TN) / sum(conf_matrix)
+  precision <- TP / (TP + FP)
+  recall <- TP / (TP + FN)
+  f1 <- 2 * (precision * recall) / (precision + recall)
+  
+  # Handle division by zero
+  if (is.na(precision)) precision <- 0
+  if (is.na(recall)) recall <- 0
+  if (is.na(f1)) f1 <- 0
+  
+  return(c(Accuracy = accuracy, Precision = precision, 
+           Recall = recall, F1_Score = f1))
+}
+
+metrics_standard <- calculate_metrics(conf_standard)
+metrics_weighted <- calculate_metrics(conf_weighted)
+metrics_balanced <- calculate_metrics(conf_balanced)
+
+# Combine into comparison table
+comparison <- data.frame(
+  Approach = c("Standard RF", "Weighted RF", "Balanced RF"),
+  Accuracy = c(metrics_standard[1], metrics_weighted[1], metrics_balanced[1]),
+  Precision = c(metrics_standard[2], metrics_weighted[2], metrics_balanced[2]),
+  Recall = c(metrics_standard[3], metrics_weighted[3], metrics_balanced[3]),
+  F1_Score = c(metrics_standard[4], metrics_weighted[4], metrics_balanced[4])
+)
+
+# Round for display
+comparison[, 2:5] <- round(comparison[, 2:5], 3)
+
+# ============================================================
+# Build FINAL model on ALL data (for sensitivity analysis)
+# ============================================================
+rf_model <- randomForest(
+  dropout ~ bmi + hhsize + wi + math + zhfa + sex + country,
+  data = model_data,
+  ntree = 500,
+  classwt = c("0" = 1, "1" = 100),
+  importance = TRUE
+)
+
+
+```
+
+```{r}
+#| label: model-comparison
+#| echo: false
+#| tbl-cap: "Comparison of Different Approaches to Handle Class Imbalance"
+
+kable(comparison,
+      col.names = c("Approach", "Accuracy", "Precision", "Recall", "F1-Score"),
+      align = c("l", "r", "r", "r", "r"))
+```
+
+### 
+
+### Understanding the Results
+
+We tried three different approaches to handle the severe class imbalance (only 1.4% dropout):
+
+**1. Standard Random Forest**: Just predicts "no dropout" for everyone. Gets high accuracy (99%) but completely useless, catches zero actual dropouts. This shows why accuracy is misleading with imbalanced data.
+
+**2. Weighted Random Forest**: We told the model "it's 100x worse to miss a dropout than to wrongly predict one." But even with heavy penalties, it still caught zero dropouts. The imbalance is too severe for weighting alone.
+
+**3. Balanced Random Forest**: We randomly removed some non-dropout cases so the training data was more balanced (3:1 ratio instead of 70:1). This works! It catches 40% of actual dropouts. Accuracy drops slightly to 96%, but this is a meaningful tradeoff - we'd rather catch some real dropouts than have perfect accuracy predicting nothing.
+
+**Key metrics to focus on:** **Recall**: What % of actual dropouts did we catch? (Most important for policy!) **Precision**: When we predict dropout, how often are we right? **F1-Score**: Balance between precision and recall
+
+The results clearly show that **class balancing is essential** for this extreme imbalance problem. Standard approaches completely fail to identify any dropout risk.
+
+For our sensitivity analysis, we use the **balanced random forest** approach because it's the only method that successfully identifies actual dropout cases. While this reduces overall accuracy slightly (from 99% to 96%), it provides the meaningful signal needed for policy simulation.
+
+## Sensitivity Analysis Results
+
+We now present the core policy simulation results using our balanced random forest model. Remember that these represent predicted changes from our model, not proven causal effects.
+
+```{r}
+#| label: run-sensitivity-balanced
+#| echo: false
+#| output: false
+
+# balanced model on ALL data for sensitivity analysis
+train_dropout_all <- model_data[model_data$dropout == 1, ]
+train_no_dropout_all <- model_data[model_data$dropout == 0, ]
+
+# Downsample non-dropout to match dropout count * 3
+set.seed(1234)
+train_no_dropout_sampled <- train_no_dropout_all[sample(nrow(train_no_dropout_all), nrow(train_dropout_all) * 3), ]
+
+
+model_data_balanced <- rbind(train_dropout_all, train_no_dropout_sampled)
+
+# final model
+rf_model <- randomForest(
+  dropout ~ bmi + hhsize + wi + math + zhfa + sex + country,
+  data = model_data_balanced,
+  ntree = 500,
+  importance = TRUE
+)
+
+# Baseline predictions on FULL dataset
+baseline_pred <- predict(rf_model, model_data, type = "prob")[,2]
+baseline_rate <- mean(baseline_pred)
+
+# BMI scenarios
+scenario_bmi_5 <- model_data %>% mutate(bmi = bmi * 1.05)
+pred_bmi_5 <- predict(rf_model, scenario_bmi_5, type = "prob")[,2]
+rate_bmi_5 <- mean(pred_bmi_5)
+
+scenario_bmi_10 <- model_data %>% mutate(bmi = bmi * 1.10)
+pred_bmi_10 <- predict(rf_model, scenario_bmi_10, type = "prob")[,2]
+rate_bmi_10 <- mean(pred_bmi_10)
+
+scenario_bmi_neg10 <- model_data %>% mutate(bmi = bmi * 0.90)
+pred_bmi_neg10 <- predict(rf_model, scenario_bmi_neg10, type = "prob")[,2]
+rate_bmi_neg10 <- mean(pred_bmi_neg10)
+
+# Household size scenarios
+scenario_hhsize_minus1 <- model_data %>% mutate(hhsize = pmax(1, hhsize - 1))
+pred_hhsize_minus1 <- predict(rf_model, scenario_hhsize_minus1, type = "prob")[,2]
+rate_hhsize_minus1 <- mean(pred_hhsize_minus1)
+
+scenario_hhsize_minus2 <- model_data %>% mutate(hhsize = pmax(1, hhsize - 2))
+pred_hhsize_minus2 <- predict(rf_model, scenario_hhsize_minus2, type = "prob")[,2]
+rate_hhsize_minus2 <- mean(pred_hhsize_minus2)
+
+scenario_hhsize_plus1 <- model_data %>% mutate(hhsize = hhsize + 1)
+pred_hhsize_plus1 <- predict(rf_model, scenario_hhsize_plus1, type = "prob")[,2]
+rate_hhsize_plus1 <- mean(pred_hhsize_plus1)
+
+
+sensitivity_results <- data.frame(
+  Scenario = c("Baseline", "BMI +5%", "BMI +10%", "BMI -10%", "HH size -1", "HH size -2", "HH size +1"),
+  Dropout_Rate = c(baseline_rate, rate_bmi_5, rate_bmi_10, rate_bmi_neg10, rate_hhsize_minus1, rate_hhsize_minus2, rate_hhsize_plus1),
+  Variable = c("Baseline", "BMI", "BMI", "BMI", "Household Size", "Household Size", "Household Size")
+)
+
+sensitivity_results$Change_from_Baseline <- (sensitivity_results$Dropout_Rate - baseline_rate) * 100
+```
+
+### Summary Table
+
+```{r}
+#| label: sensitivity-table
+#| echo: false
+#| tbl-cap: "Predicted Impact of Policy Interventions on Dropout Rates"
+
+sens_table <- sensitivity_results %>%
+  mutate(
+    Dropout_Rate = paste0(round(Dropout_Rate * 100, 2), "%"),
+    Change_from_Baseline = paste0(round(Change_from_Baseline, 2), " pp")
+  ) %>%
+  select(Scenario, Dropout_Rate, Change_from_Baseline)
+
+kable(sens_table,
+      col.names = c("Scenario", "Predicted Dropout Rate", 
+                    "Change from Baseline"))
+```
+
+### 
+
+### Key Findings from Balanced Random Forest
+
+**1. Nutritional decline poses the greatest risk**
+
+Worsening nutrition (10% BMI decrease) predicts a **5.07 percentage point increase** in dropout - the largest effect among all scenarios. This suggests that economic shocks affecting food security could have severe educational consequences.
+
+Conversely, improving nutrition reduces predicted dropout: \
+- 5% BMI improvement: -1.19 pp decrease \
+- 10% BMI improvement: -1.49 pp decrease
+
+**2. Household size matters but effects are more modest**
+
+Reducing household size predicts lower dropout, though the effects are smaller: \
+- 1-person reduction: -0.49 pp \
+- 2-person reduction: -0.60 pp
+
+Increasing household size by 1 person predicts a 0.89 pp increase in dropout.
+
+**3. Baseline is higher than actual dropout**
+
+The balanced model predicts 21.5% baseline dropout compared to the actual 1.4%. This is because the model was trained on balanced data (3:1 ratio instead of 70:1), making it more sensitive to dropout risk. The **direction and relative magnitude** of effects matter more than absolute predictions for policy simulation.
+
+**Policy implications:**
+
+\- Protecting household food security during economic crises is critical \
+- Nutrition programs remain important for dropout prevention \
+- Family planning and household support may provide modest benefits \
+- Combined interventions addressing multiple risk factors likely work best
+
+### Visualization
+
+```{r}
+#| label: sensitivity-plot
+#| echo: false
+#| fig-cap: "Predicted Impact of Interventions on Dropout Rates"
+#| fig-height: 7
+#| fig-width: 10
+
+ggplot(sensitivity_results %>% filter(Scenario != "Baseline"), 
+       aes(x = reorder(Scenario, Change_from_Baseline), 
+           y = Change_from_Baseline, 
+           fill = Variable)) +
+  geom_col(width = 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", linewidth = 1) +
+  coord_flip() +
+  scale_fill_manual(values = c("BMI" = "orange", "Household Size" = "blue")) +
+  labs(
+    title = "Which Interventions Have the Largest Predicted Impact?",
+    subtitle = paste0("Change in predicted dropout rate from baseline (", 
+                      round(baseline_rate * 100, 2), "%)"),
+    x = "",
+    y = "Change in Predicted Dropout Rate (percentage points)",
+    fill = "Policy Domain",
+    caption = "Note: Predictions from balanced random forest model. Negative values indicate dropout reduction."
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 12, color = "gray30"),
+    legend.position = "bottom",
+    panel.grid.minor = element_blank(),
+    axis.text = element_text(size = 11)
+  ) +
+  geom_text(aes(label = paste0(round(Change_from_Baseline, 2), " pp")),
+            hjust = ifelse(sensitivity_results %>% 
+                            filter(Scenario != "Baseline") %>% 
+                            pull(Change_from_Baseline) > 0, -0.1, 1.1),
+            size = 4)
+```
+
+The visualization clearly shows that nutritional decline (BMI:10%) has the largest predicted impact on dropout, followed by nutrition improvements and household size changes.
+
+### Logistic Regression Sensitivity Analysis
+
+### 
+
+### 
+
+### 
+
+## 
+
+## 
