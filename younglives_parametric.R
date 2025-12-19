@@ -2,8 +2,9 @@
 
 library(tidyverse)
 library(janitor)
+library(tidymodels)
 
-df <- read_csv("/Users/MehriaSaadatKhan/Desktop/Intro to Data science/younglives/young_lives_dropout_sensitivity.csv")
+df <- read_csv("/Users/MehriaSaadatKhan/Desktop/Intro to Data science/Final_Project/young_lives_dropout_r3_r4.csv")
 
 df <- df %>% clean_names() 
 # to make sure the names are all okay to work, no issues of capital etc 
@@ -11,7 +12,7 @@ df <- df %>% clean_names()
 
 dim(df)          # number of rows and columns
 glimpse(df)      # variable types + preview
-names(df)[1:40]  # first 40 column names
+names(df)[1:25]  # first 40 column names
 
 df %>%
   count(childid) %>%
@@ -30,29 +31,11 @@ dup_check <- df %>%
   count(country, childid, name = "n_rows") %>%
   arrange(desc(n_rows))
 
-
-#confirm if they are identical or different rows 
-df %>%
-  filter(childid == "PE121021", country == "Peru") %>%
-  select(childid, country, enrolled, dropout, sex, hhsize, region, typesite, math) %>%
-  distinct() %>%
-  print(n = 50)
-
-#collapse
-df_child <- df %>%
-  arrange(country, childid) %>%
-  distinct(country, childid, .keep_all = TRUE)
-
-#check if it worked, we should get zero rows 
-df_child %>%
-  count(country, childid) %>%
-  filter(n > 1)
-
 #Define the analysis population (at-risk children) 
 
 #since only children enrolled can drop out we define population= children who are enrolled 
 
-analysis_df <- df_child %>%
+analysis_df <- df %>%
   filter(!is.na(dropout)) %>%   # keep only children with defined dropout status
   mutate(
     dropout = factor(dropout, levels = c(0, 1)),
@@ -75,7 +58,7 @@ analysis_df %>%
   mutate(rate = n / sum(n))
 
 
-library(tidymodels)
+
 
 #split the data 
 set.seed(123)
@@ -117,10 +100,10 @@ bind_rows(
 #Variables we are using 
 logit_add <- glm(
   dropout ~
-    zhfa + zwfa + zbfa + bmi +      # nutrition / anthropometrics
-    ppvt + math +                  # cognition
+    zhfa + bmi +      # nutrition/ health/ nutrition 
+    math +                  # cognition
     wi + hhsize +        # household SES/size
-    sex + typesite + country,      # demographics + site + country FE
+    sex + country,    # demographics + site + country FE
   data = train,
   family = binomial(link = "logit")
 )
@@ -139,6 +122,8 @@ logit_m1 <- glm(
 
 summary(logit_m1)
 
+#Nutrition measures on their own do not strongly predict dropout in the short run.
+#Nutrition affects schooling indirectly through learning 
 
 #Nutrition + cognition 
 logit_m2 <- glm(
@@ -149,6 +134,8 @@ logit_m2 <- glm(
 )
 
 summary(logit_m2)
+
+
 
 
 # add household socioeconomics states 
@@ -163,53 +150,39 @@ logit_m3 <- glm(
 summary(logit_m3)
 
 
-#When we only use health/nutrition measures (like height-for-age and BMI), they don’t do a good job predicting who drops out.
-#But when we add children’s learning measures, math score becomes the clear strongest predictor: kids with lower math scores are much more likely to drop out.
-#When we also add household factors like wealth and household size, the results don’t really change—math still matters most.
-#Overall, this suggests that weak learning (especially in math) is the most direct warning sign for dropping out soon. Health and household disadvantage may still matter, but mainly because they affect how well children learn.
+#logit on all the data 
 
+# Full analysis sample (at-risk children with defined dropout)
+full <- analysis_df
 
-# Predictive Probablity Modeling
-
-#create a prediction dataset from the variable that is most informative
-# the following will create a hypothetical children who differ only in math scores
-math_seq <- seq(
-  from = min(train$math, na.rm = TRUE),
-  to   = max(train$math, na.rm = TRUE),
-  length.out = 50
+logit_full <- glm(
+  dropout ~ zhfa + bmi + math + wi + hhsize + sex + country,
+  data = full,
+  family = binomial(link = "logit")
 )
 
-pred_df <- tibble(
-  math = math_seq,
-  zhfa = mean(train$zhfa, na.rm = TRUE),
-  zwfa = mean(train$zwfa, na.rm = TRUE),
-  zbfa = mean(train$zbfa, na.rm = TRUE),
-  bmi  = mean(train$bmi,  na.rm = TRUE),
-  ppvt = mean(train$ppvt, na.rm = TRUE),
-  wi   = mean(train$wi,   na.rm = TRUE),
-  hhsize = mean(train$hhsize, na.rm = TRUE),
-  sex = levels(train$sex)[1],
-  typesite = levels(train$typesite)[1],
-  country = levels(train$country)[1]
+summary(logit_full)
+
+
+
+cor.test(
+  analysis_df$bmi,
+  analysis_df$math,
+  use = "complete.obs"
 )
 
-# predict dropout probability 
-pred_df$pred_p <- predict(
-  logit_m3,
-  newdata = pred_df,
-  type = "response"
+
+#OLS regression of Math and BMI controlling for hh and wi
+lm_math <- lm(
+  math ~ bmi + sex + country + hhsize + wi,
+  data = analysis_df
 )
 
-library(ggplot2)
+summary(lm_math)
 
-ggplot(pred_df, aes(x = math, y = pred_p)) +
-  geom_line() +
-  labs(
-    x = "Math score (Round 3)",
-    y = "Predicted probability of dropout",
-    title = "Predicted dropout risk by baseline math achievement"
-  ) +
-  theme_minimal()
+
+
+
 
 
 
