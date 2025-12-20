@@ -29,28 +29,28 @@ bibliography: references.bib
 
 ## Executive Summary
 
-This study investigates predictors of school dropout among adolescents in India and Peru using longitudinal data from the Young Lives study. We employ a mixed-methods approach combining logistic regression, machine learning with class imbalance techniques, and policy simulation through sensitivity analysis.
+This study investigates predictors of school dropout among adolescents in India and Peru using longitudinal data from the Young Lives study (Young Lives, n.d.). We employ a mixed-methods approach combining logistic regression, machine learning with class imbalance techniques, and policy simulation through sensitivity analysis.
 
 **Sample:** We analyze 1,678 children with complete data from both Round 3 (age \~12) and Round 4 (age \~15), drawn from an initial sample of 3,874 children. High study attrition (55.5%) limits generalizability, but our complete-case analysis provides valid estimates for children who remained in the study.
 
 **Key Findings:**
 
 -   **Rare outcome challenge:** Only 21 children (1.25%) dropped out between rounds, requiring specialized techniques
--   **Math score has strong effects:** 5-point increase predicts 0.8 percentage point dropout decrease
--   **Wealth matters:** 0.5 SD wealth increase predicts 0.6 percentage point dropout decrease\
+-   **Math score has strong effects:** 5 point increase predicts 0.8 percentage point dropout decrease
+-   **Wealth matters:** 0.5 SD wealth increase predicts 0.6 percentage point dropout decrease
 -   **Household size effects:** 2-person reduction predicts 0.87 percentage point dropout decrease
 -   **Nutrition effects:** 10% BMI improvement predicts 0.29 percentage point dropout decrease
 -   **Combined interventions most effective:** Simultaneous improvements in multiple factors produce larger effects
 
 **Policy Implications:** Our sensitivity analysis suggests that multifaceted interventions addressing economic security, academic support, and household nutrition may be most effective for dropout prevention.
 
-**Technical Achievement:** Despite extreme class imbalance (98.75% non-dropout), we successfully demonstrate both parametric and machine learning approaches, showing how different methods handle rare outcomes.
+**Technical Achievement:** Despite extreme class imbalance (98.75% non dropout), we successfully demonstrate both parametric and machine learning approaches, showing how different methods handle rare outcomes.
 
 # Introduction
 
 ## Motivation and Policy Context
 
-Education is widely recognized as a fundamental driver of economic development and social mobility. While global primary school enrollment rates have reached historic highs, with nearly 90% of children worldwide attending primary school, keeping children in school through adolescence remains a significant challenge in developing countries (UNESCO, 2021). The transition from primary to secondary education represents a critical juncture where dropout rates spike, particularly in low and middle-income countries.
+Education is widely recognized as a fundamental driver of economic development and social mobility (Ozturk, 2001) While global primary school enrollment rates have reached historic highs, with nearly 90% of children worldwide attending primary school, keeping children in school through adolescence remains a significant challenge in developing countries (UNESCO, 2021). The transition from primary to secondary education represents a critical juncture where dropout rates spike, particularly in low and middle-income countries (UNICEF, 2022)
 
 Understanding what predicts school dropout is not just an academic exercise. It has direct implications for how governments and NGOs allocate resources. Should we invest more in nutrition programs? Cash transfers to reduce household economic stress? Family planning initiatives? The answer depends on which factors actually drive dropout decisions, and more importantly, how much changing those factors would matter.
 
@@ -68,7 +68,7 @@ This study addresses three interconnected questions:
 
 This project makes several contributions:
 
-**Methodologically**, we demonstrate how to handle severe class imbalance in a policy-relevant context, comparing parametric and machine learning approaches. We show that standard techniques fail with rare outcomes, but specialized methods (class weighting, balanced forests) can extract meaningful patterns.
+**Methodologically**, we demonstrate how to handle severe class imbalance in a policy relevant context, comparing parametric and machine learning approaches. We show that standard techniques fail with rare outcomes, but specialized methods (class weighting, balanced forests) can extract meaningful patterns (Deveaux, 2021).
 
 **Substantively**, we provide evidence on the relative importance of different risk factors for adolescent dropout in two major developing countries. Our sensitivity analysis translates statistical associations into predicted policy impacts, offering a template for evidence-based decision making.
 
@@ -78,11 +78,15 @@ This project makes several contributions:
 
 ## The Young Lives Study
 
-We use data from Young Lives, a longitudinal study tracking children in four developing countries (Ethiopia, India, Peru, and Vietnam) from early childhood through young adulthood. The study began in 2001-2002 and has conducted five rounds of data collection. Young Lives is one of the most comprehensive longitudinal datasets available on child development in the Global South, making it ideal for studying educational trajectories.
+We use data from Young Lives, a longitudinal study tracking children in four developing countries (Ethiopia, India, Peru, and Vietnam) from early childhood through young adulthood (Young Lives, n.d.). The study began in 2001-2002 and has conducted five rounds of data collection. Young Lives is one of the most comprehensive longitudinal datasets available on child development in the Global South, making it ideal for studying educational trajectories.
 
-For this analysis, we focus on the **Younger Cohort** in **India and Peru** - children born around 2001-2002 who were surveyed at: - **Round 3 (2009)**: Age approximately 8 years old - **Round 4 (2013)**: Age approximately 12 years old
+For this analysis, we focus on the Younger Cohort in India and Peru - children born around 2001-2002 who were surveyed at:
 
-We chose these two countries because they represent different geographic and cultural contexts within the developing world, allowing us to examine whether patterns are consistent across settings.
+\- **Round 3 (2009)**: Age approximately 8 years old
+
+\- **Round 4 (2013)**: Age approximately 12 years old
+
+We chose these two countries because they represent different geographic and cultural contexts within the developing world, allowing us to examine whether patterns are consistent across settings (UK Data Service, n.d.)
 
 ## Sample Construction and Attrition
 
@@ -90,7 +94,11 @@ Our sample construction involved several steps:
 
 ### Initial Sample
 
-\- **India Round 3**: 1,931 children - **Peru Round 3**: 1,943 children - **Total Round 3**: 3,874 children
+\- **India Round 3**: 1,931 children
+
+ - **Peru Round 3**: 1,943 children
+
+\- **Total Round 3**: 3,874 children
 
 ### Study Attrition
 
@@ -100,7 +108,7 @@ A major challenge in longitudinal research is attrition: participants who are su
 -   **Peru**: 1,085 children (55.8%) surveyed in Round 3 have missing Round 4 data
 -   **Total attrition**: 2,151 children (55.5%)
 
-This high attrition rate is concerning but not unusual for longitudinal studies in developing countries where families are highly mobile. Attrition can bias results if children who drop out of the study are systematically different from those who remain. We discuss this limitation in detail later.
+This high attrition rate is concerning but not unusual for longitudinal studies in developing countries where families are highly mobile. Attrition can bias results if children who drop out of the study are systematically different from those who remain (Alderman et al., 2001). We discuss this limitation in detail later.
 
 ### Analytical Sample
 
@@ -110,7 +118,7 @@ After accounting for attrition and missing data on key variables:
 -   **Children with complete predictor data**: 1,678 (our final analytical sample)
 -   **Dropout cases in analytical sample**: 21 children (1.25%)
 
-We use **complete case analysis**, including only the 1,678 children with complete information on all predictor variables. This approach is appropriate given minimal missing data (\<3% for most variables).
+We use complete case analysis, including only the 1,678 children with complete information on all predictor variables. This approach is appropriate given minimal missing data (\<3% for most variables).
 
 ```{r}
 #| label: setup
@@ -162,7 +170,7 @@ kable(attrition_summary,
 
 ## Outcome Variable: Dropout
 
-We define **dropout** as a binary outcome comparing a child's enrollment status between Round 3 and Round 4.
+We define dropout as a binary outcome comparing a child's enrollment status between Round 3 and Round 4.
 
 **A child is coded as:**
 
@@ -210,8 +218,8 @@ kable(dropout_summary,
 
 **Key observations:**
 
--   **Overall dropout rate**: 1.25% (21 dropouts among 1,678 children in analytical sample)
--   **Low dropout rate** presents a significant **class imbalance challenge** for predictive modeling
+-   Overall dropout rate: 1.25% (21 dropouts among 1,678 children in analytical sample)
+-   Low dropout rate presents a significant class imbalance challenge for predictive modeling
 -   Standard ML algorithms struggle with rare outcomes, they can achieve 98.75% accuracy by simply predicting "no dropout" for everyone
 
 ## Predictor Variables
@@ -220,7 +228,7 @@ We selected five key predictor variables based on prior literature on educationa
 
 ### 1. Body Mass Index (BMI)
 
-**Rationale**: Nutrition and health status affect children's ability to attend and succeed in school. Malnutrition is associated with fatigue, illness, and cognitive difficulties.
+**Rationale**: Nutrition and health status affect children's ability to attend and succeed in school. Malnutrition is associated with fatigue, illness, and cognitive difficulties (Bisset et al., 2012).
 
 **Measurement**: Continuous variable, calculated from measured height and weight.
 
@@ -228,7 +236,7 @@ We selected five key predictor variables based on prior literature on educationa
 
 ### 2. Household Size
 
-**Rationale**: Larger households mean more competition for resources and potentially more pressure for older children to work or care for siblings.
+**Rationale**: Larger households mean more competition for resources and potentially more pressure for older children to work or care for siblings ((Francess et al., 2017).
 
 **Measurement**: Count of household members.
 
@@ -236,7 +244,7 @@ We selected five key predictor variables based on prior literature on educationa
 
 ### 3. Wealth Index
 
-**Rationale**: Economic constraints are a primary driver of dropout, as poor families may need children to work or cannot afford school-related costs.
+**Rationale**: Economic constraints are a primary driver of dropout, as poor families may need children to work or cannot afford school-related costs (Wangu et al., 2024).
 
 **Measurement**: Composite index based on household assets, housing quality, and access to services. Higher values indicate greater wealth.
 
@@ -244,7 +252,7 @@ We selected five key predictor variables based on prior literature on educationa
 
 ### 4. Math Score
 
-**Rationale**: Academic performance is both a predictor and early warning sign of dropout risk. Children who struggle academically are more likely to disengage.
+**Rationale**: Academic performance is both a predictor and early warning sign of dropout risk. Children who struggle academically are more likely to disengage (National Dropout Prevention Center/Network, 2002).
 
 **Measurement**: Standardized test score from Round 3 assessments.
 
@@ -252,7 +260,7 @@ We selected five key predictor variables based on prior literature on educationa
 
 ### 5. Height-for-Age Z-Score (ZHFA)
 
-**Rationale**: Stunting (low height-for-age) reflects chronic malnutrition and poor early childhood conditions, with lasting effects on cognitive development.\
+**Rationale**: Stunting (low height-for-age) reflects chronic malnutrition and poor early childhood conditions, with lasting effects on cognitive development (Gansaonré et al., 2021). \
 **Measurement**: Z-score calculated relative to WHO growth standards. Negative values indicate stunting.
 
 **Policy relevance**: Early childhood nutrition, maternal health programs.
@@ -324,7 +332,7 @@ Our analysis proceeds in three stages:
 2.  **Machine Learning with Class Imbalance Techniques**: Random forests with specialized methods to handle rare outcomes
 3.  **Policy Simulation via Sensitivity Analysis**: Simulating changes in predictors to estimate policy impacts
 
-This multi-method approach allows us to compare different modeling strategies for rare events, validate findings across approaches, and translate statistical associations into policy-relevant scenarios.
+This multi method approach allows us to compare different modeling strategies for rare events, validate findings across approaches, and translate statistical associations into policy-relevant scenarios.
 
 ## Stage 1: Logistic Regression
 
@@ -472,7 +480,7 @@ The results clearly demonstrate the class imbalance problem:
 
 **Balanced Random Forest** reduces accuracy slightly to 96% but achieves 40% recall, it successfully identifies 40% of students who actually drop out. This tradeoff is valuable because identifying at-risk students is more important than perfect accuracy.
 
-For our sensitivity analysis, we use the **balanced random forest** because it's the only approach that actually detects dropout risk. The lower overall accuracy is an acceptable tradeoff for the ability to identify vulnerable students.
+For our sensitivity analysis, we use the balanced random forest because it's the only approach that actually detects dropout risk. The lower overall accuracy is an acceptable tradeoff for the ability to identify vulnerable students.
 
 We focus on **recall** as our key metric because in a policy context, missing at risk students (false negatives) is more costly than incorrectly flagging some students (false positives). Schools can provide extra support to flagged students, but cannot help students they fail to identify.
 
@@ -480,7 +488,7 @@ We focus on **recall** as our key metric because in a policy context, missing at
 
 ### Variable Importance: Which Predictors Matter Most?
 
-We add this section to understand **which of our 5 variables actually help predict dropout**. This tells us where policy interventions might be most effective.
+We add this section to understand which of our 5 variables actually help predict dropout. This tells us where policy interventions might be most effective.
 
 ```{r}
 #| label: variable-importance
@@ -507,7 +515,7 @@ kable(importance_df,
       caption = "Which Variables Best Predict Dropout?")
 ```
 
-**So basically to read this:**
+**To understand the outcome:**
 
 -   **Higher scores = more important** for predicting dropout
 -   The variable at the top helps the model most
@@ -515,13 +523,15 @@ kable(importance_df,
 
 **What this tells us:**
 
-Our random forest identifies **math score** as by far the most important predictor of dropout (importance = 2.82). This suggests that academic performance is the strongest early warning sign. Students struggling in math at age 12 are at much higher risk of dropping out by age 15.
+Our random forest identifies math score as by far the most important predictor of dropout (importance = 2.82). This suggests that academic performance is the strongest early warning sign. Students struggling in math at age 12 are at much higher risk of dropping out by age 15.
 
 **Wealth index** (1.50) and **BMI** (1.10) are also important, indicating that economic factors and nutritional status matter for staying in school.
 
-Surprisingly, **household size** (0.08) has almost no predictive power in our model. Despite theoretical expectations that larger households increase dropout risk, household size doesn't help our model identify at-risk students. This could mean that in our sample, household size isn't actually driving dropout decisions, or its effect is captured by other variables like wealth.
+Surprisingly, **household size** (0.08) has almost no predictive power in our model. Despite theoretical expectations that larger households increase dropout risk, household size doesn't help our model identify at risk students. This could mean that in our sample, household size isn't actually driving dropout decisions, or its effect is captured by other variables like wealth.
 
-**Policy implications:** These results suggest that interventions targeting **academic support** (tutoring, remedial education) might be most effective, followed by **economic assistance** (cash transfers) and **nutrition programs**.
+RELATE TO LOGIT MODEL
+
+**Policy implications:** These results suggest that interventions targeting academic support (tutoring, remedial education) might be most effective, followed by economic assistance (cash transfers) and nutrition programs.
 
 ```{r}
 #| label: importance-plot
@@ -547,9 +557,9 @@ Without variable importance, we only know that our model can predict dropout wit
 
 ### 
 
-### Sensativity Analysis
+### Sensitivity Analysis
 
-We were curious to understand how dropout rates would vary as other factors changed.
+We were curious to understand how dropout rates would vary as other factors changed. Using a balanced random forest model to address class imbalance, we generate counterfactual scenarios by only changing our variable of interest (body mass index (BMI), household size, household wealth, and math achievement) while leaving all other characteristics unchanged. For each scenario, we recompute predicted dropout probabilities for the full sample and compare the average predicted dropout rate to the baseline. 
 
 ```{r}
 #| label: run-sensitivity-balanced
@@ -619,7 +629,6 @@ scenario_hhsize_plus1 <- model_data %>%
 rate_hhsize_plus1 <- mean(
   predict(rf_model, scenario_hhsize_plus1, type = "prob")[,2]
 )
-
 
 # 6. MATH SCENARIOS 
 
@@ -707,6 +716,44 @@ sensitivity_results
 
 ```
 
-## 
+The simulation analysis evaluates how predicted dropout rates change in response to plausible positive and negative shifts in key child and household characteristics, holding the trained model fixed.
+
+-   Predicted dropout is most sensitive to household wealth, with negative wealth shocks producing the largest increases in dropout risk and wealth improvements generating substantial reductions.
+
+-   Academic performance (math scores) also shows a strong association with dropout risk.
+
+-   Nutritional status (BMI) matters, particularly on the downside, as reductions in BMI lead to notable increases in predicted dropout risk.
+
+-   Changes in household size have comparatively smaller and less consistent effects on predicted dropout.
+
+-   These results are descriptive rather than causal but provide useful insight into which factors the model identifies as most closely associated with school dropout risk.
+
+## Policy Reccomendation 
+
+## Conclusion 
+
+## Bibliography 
+
+Ozturk, Ilhan. (2001). The Role of Education in Economic Development: A Theoretical Perspective. SSRN Electronic Journal. 10.2139/ssrn.1137541.
+
+Bisset, Sherri & Fournier, Michel & Janosz, Michel & Pagani, Linda. (2012). Predicting academic and cognitive outcomes from weight status trajectories during childhood. International journal of obesity (2005). 37. 10.1038/ijo.2012.106.
+
+Francess, Dufie & Azumah, Francess & Adjei, Emmanuel & Nachinaab, John. (2017). The Effects Of Family Size On The Investment Of Child Education, Case Study At Atonsu-Buokro, Kumasi.
+
+Wangu, G. J., Odek, A., & Marima, E. (2024). *Social-economic factors and secondary school dropout among girls in Mariani Ward, Tharaka-Nithi County, Kenya*. **African Journal of Empirical Research, 5**(4), 520--534. https://ajernet.net
+
+National Dropout Prevention Center/Network. (2002). *How to identify students at risk of dropping out*. <https://dropoutprevention.org/wp-content/uploads/2015/10/SS02HowtoIdentify.pdf>
+
+Gansaonré, Rabi & Moore, Lynne & Bleau, Louis-Philippe & Kobiane, Jean-Francois & Haddad, Slim. (2021). Stunting, age at school entry and academic performance in developing countries: A systematic review and meta-analysis. 10.21203/rs.3.rs-606866/v1.
+
+Young Lives. (n.d.). *Data and research*. <https://www.younglives.org.uk/data-research>
+
+Deveaux, M. (2021, February 23). *4 classification algorithms to deal with unbalanced datasets*. Medium. <https://marc-deveaux.medium.com/4-classification-algorithms-to-deal-with-unbalanced-datasets-d034f575cd6a>
+
+Alderman, H., Behrman, J. R., Kohler, H.-P., Maluccio, J. A., & Watkins, S. C. (2001). *Attrition in longitudinal household survey data: Some tests for three developing-country samples*. **Demographic Research, 5**, Article 4. <https://www.demographic-research.org/volumes/vol5/4/5-4.pdf>
+
+UNICEF. (2022). *Secondary education*. <https://data.unicef.org/topic/education/secondary-education/>
+
+UK Data Service. (n.d.). *Data catalogue series 2000060*. <https://datacatalogue.ukdataservice.ac.uk/series/series/2000060>
 
 ## 
