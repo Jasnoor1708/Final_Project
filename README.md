@@ -8,6 +8,8 @@ Methods used:
 - Sensitivity analysis for policy simulation
 
 ---
+## View the Full Report
+**[Click here to view the complete analysis](https://jasnoor1708.github.io/Final_Project/Final_Policy-5.html)**
 
 ## Data
 
