@@ -3,7 +3,7 @@ title: "Predicting School Dropout in Developing Countries"
 subtitle: "A Machine Learning Approach with Policy Simulations Using Longitudinal Data from India and Peru"
 author: 
   - "Jasnoor Anand"
-  - "Sanna Kashif"
+  - "Sanaa Kashif"
   - "Mehria Saadat Khan"
 date: today
 format:
@@ -38,9 +38,6 @@ This study investigates predictors of school dropout among adolescents in India 
 -   **Household size effects:** 2 person reduction predicts 0.87 percentage point dropout decrease
 -   **Nutrition effects:** 10% BMI improvement predicts 0.29 percentage point dropout decrease
 -   **Combined interventions most effective:** Simultaneous improvements in multiple factors produce larger effects
-
-**Policy Implications:** \
-**Technical Achievement:**
 
 # Introduction
 
