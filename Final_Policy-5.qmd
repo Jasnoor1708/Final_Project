@@ -36,7 +36,7 @@ logistic regression, machine learning with class imbalance techniques,
 and policy simulation through sensitivity analysis.
 
 **Sample:** We analyze 1,678 children with complete data from both Round
-3 (age \~12) and Round 4 (age \~15), drawn from an initial sample of
+3 (age \~8) and Round 4 (age \~12), drawn from an initial sample of
 3,874 children. High study attrition (55.5%) limits generalizability,
 but our complete case analysis provides valid estimates for children who
 remained in the study.
@@ -82,7 +82,7 @@ matter.
 This study addresses three interconnected questions:
 
 1.  **Prediction**: What factors best predict which children will drop
-    out of school between ages 12 and 15 in India and Peru?
+    out of school between ages 8 and 12 in India and Peru?
 
 2.  **Methodology**: How can we build effective predictive models when
     the outcome (dropout) is rare, affecting only 1-2% of our sample?
@@ -124,9 +124,10 @@ development in the Global South, making it ideal for studying
 educational trajectories.
 
 For this analysis, we focus on the **Younger Cohort** in **India and
-Peru** - children born around 2001-2002 who were surveyed at: - **Round
-3 (2009)**: Age approximately 8 years old - **Round 4 (2013)**: Age
-approximately 12 years old
+Peru** - children born around 2001-2002 who were surveyed at: -
+
+-   **Round 3 (2009)**: Age approximately 8 years old
+-   **Round 4 (2013)**: Age approximately 12 years old
 
 We chose these two countries because they represent different geographic
 and cultural contexts within the developing world, allowing us to
@@ -668,9 +669,6 @@ Other significant predictors of math scores:\
 - **Wealth** (p \< 0.001\***): Much stronger effect: wealthier families
 have children with much higher math scores (coef = 11.9)**
 
-**-** Country: Peru **(p = 0.0076**): Peru has higher math scores than
-India
-
 **Interpretation:** This confirms our indirect pathway hypothesis:\
 1. Better nutrition (higher BMI) affects better academic performance
 (higher math scores)\
@@ -899,7 +897,7 @@ kable(importance_df,
 Our random forest identifies **math score** as by far the most important
 predictor of dropout (importance = 2.82). This suggests that academic
 performance is the strongest early warning sign. Students struggling in
-math at age 12 are at much higher risk of dropping out by age 15.
+math at age 8 are at much higher risk of dropping out by age 12.
 
 **Wealth index** (1.50) and **BMI** (1.10) are also important,
 indicating that economic factors and nutritional status matter for
@@ -1283,7 +1281,7 @@ A second limitation in this research is the relatively low incidence of
 school dropout in the observed sample, which results in a highly
 imbalanced outcome variable. This leads to our predictive model
 performing well in terms of overall accuracy while failing to adequately
-identify individuals at higher risk of dropout (Gnadler, 2020). 
+identify individuals at higher risk of dropout (Gandler, 2020). 
 
 Class imbalance can lead models to place disproportionate weight on the
 majority (non-dropout) group, increasing the risk that patterns
