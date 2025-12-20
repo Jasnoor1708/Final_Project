@@ -994,50 +994,94 @@ The simulation analysis evaluates how predicted dropout rates change in response
 
 -   These results are descriptive rather than causal but provide useful insight into which factors the model identifies as most closely associated with school dropout risk.
 
-## Policy Reccomendation
+## Policy Recommendations
+
+Based on our analysis, here's what we think could actually help reduce dropout:
+
+**One policy** implication from our results is to invest in targeted learning acceleration before and during the transition to lower secondary, because math achievement is the strongest and most consistent early-warning predictor of dropout in our models. A scalable approach is structured tutoring that groups students by learning level and teaches foundational numeracy directly, rather than relying on grade-level pacing for everyone. Rigorous evidence from India shows that Teaching at the Right Level-style interventions can generate large learning gains when implemented systematically at scale (Banerjee et al., 2016; J-PAL, 2022).
+
+**Second policy** recommendation is to reduce household financial pressure that pushes adolescents out of school by expanding targeted cash support (scholarships or cash transfers), especially around secondary-school ages. This aligns with our sensitivity analysis, where predicted dropout is most responsive to changes in wealth. Evidence from Mexico’s Progresa/Oportunidades shows meaningful improvements in schooling outcomes such as enrollment and grade progression, consistent with the idea that reducing the direct and opportunity costs of schooling can keep students in school longer (Behrman et al., 2009; Schultz, 2004). Evidence from Brazil also suggests conditional cash transfer programs can improve enrollment and reduce dropout-related outcomes (Glewwe & Kassouf, 2012). 
+
+**Finally**, we recommend bundling school-based nutrition and basic child health supports (e.g., meals and deworming), particularly for disadvantaged students, since nutrition shocks in our simulations increase predicted dropout and nutrition/health plausibly support learning readiness. A randomized evaluation in Kenya found subsidized school meals increased school participation, and experimental evidence on school-based deworming shows reductions in absenteeism and improvements in participation in high-burden settings (Miguel & Kremer, 2004; Vermeersch & Kremer, 2004). Together, these packages can stabilize attendance while also complementing learning-focused interventions.\
+
+## Limitations  
+
+1.  **Study attrition:** 
+
+A key limitation of this study is the high level of attrition across survey round. Attrition of this magnitude raises concerns about sample selection and the external validity of the results, as children who drop out of the study may differ systematically from those who remain (Bamer et al., 2020).
+
+Attrition is unlikely to be random in this context. Children who are poorer, in worse health, or experiencing educational disruption are plausibly more likely both to exit the survey and to drop out of school. If so, the observed sample may overrepresent relatively advantaged children and understate the true prevalence and severity of school dropout. Such systematic attrition can bias estimates and predictive relationships if the mechanisms driving survey attrition are correlated with the outcomes or covariates of interest.
+
+Despite these concerns, we proceed with the analysis for two reasons.
+
+First, the primary objective of the study is predictive and descriptive rather than causal, focusing on identifying correlates of dropout risk and assessing model sensitivity rather than estimating population level treatment effects. 
+
+Second, attrition is a well-documented feature of long running longitudinal surveys, and the retained sample remains large and information rich, allowing for meaningful analysis of patterns. 
+
+2.  **Dropout rate :**
+
+A second limitation in this research is the relatively low incidence of school dropout in the observed sample, which results in a highly imbalanced outcome variable. This leads to our predictive model performing well in terms of overall accuracy while failing to adequately identify individuals at higher risk of dropout (Gnadler, 2020). 
+
+Class imbalance can lead models to place disproportionate weight on the majority (non-dropout) group, increasing the risk that patterns associated with dropout are underrepresented or unstable (Ibid.). To address this concern, we estimate multiple predictive models that explicitly account for imbalance, including a standard random forest as a baseline, a weighted random forest that penalizes misclassification of dropout cases more heavily, and a balanced random forest that down-samples the majority class during training. We also estimate logistic regression models as a benchmark and use simulation-based sensitivity analysis to examine how predicted dropout probabilities respond to changes in key covariates rather than relying solely on classification outcomes.
+
+Despite these adjustments, the low prevalence of dropout remains a constraint. The results should therefore be interpreted as indicative of relative risk patterns rather than precise predictions.This also means that the outcomes within this research are not generalisable.  We proceed with this approach because the goal of the study is to explore predictive correlates and model responsiveness in a low-dropout context, rather than to optimize classification performance or estimate causal effects.
 
 ## Conclusion
 
-### 
-
-### 
-
-## 
-
-## 
+Our research had three separate components : The logit model, our predictive modeling and our simulation modeling. From the logit model, we found that both the math score and the wealth index were important for predicting the dropout. The random forest modeling results echo this as it shows that the math score is the most important predictor for dropout. This is followed by the wealth index and BMI. The simulation further enforces the central role of economics and health by showing that changes in wealth  have the largest impact on dropout rates, followed by BMI and math scores. Taken together, these results highlight the consistent importance of wealth, health and academic factors across modeling approaches. In response to this research, we recommend a) targeted learning acceleration during the transition to secondary school b) expanded targeted cash support programs c) bundling school nutrition and basic health support for disadvantaged students. We believe that all three of these solutions will be key reducing dropout rates for children in both India and Peru. 
 
 ## Bibliography
 
-Alderman, H., Behrman, J. R., Kohler, H.-P., Maluccio, J. A., & Watkins, S. C. (2001). Attrition in longitudinal household survey data: Some tests for three developing-country samples. Demographic Research, 5, Article 4. <https://www.demographic-research.org/volumes/vol5/4/5-4.pdf>
+Alderman, H., Behrman, J. R., Kohler, H.-P., Maluccio, J. A., & Watkins, S. C. (2001). Attrition in longitudinal household survey data: Some tests for three developing-country samples. *Demographic Research, 5*, Article 4. <https://www.demographic-research.org/volumes/vol5/4/5-4.pdf>
 
-Bisset, S., Fournier, M., Janosz, M., & Pagani, L. (2013). Predicting academic and cognitive outcomes from weight status trajectories during childhood. International Journal of Obesity, 37. <https://doi.org/10.1038/ijo.2012.106>
+Bamer, A. M., McMullen, K., Gibran, N., Holavanahalli, R., Schneider, J. C., Carrougher, G. J., Wiechman, S., Wolfe, A., & Amtmann, D. (2020). Factors associated with attrition of adult participants in a longitudinal database: A National Institute on Disability, Independent Living, and Rehabilitation Research Burn Model System Study. *Journal of Burn Care & Research, 41*(2), 270–279. <https://doi.org/10.1093/jbcr/irz186>
 
-Chawla, N. V., Bowyer, K. W., Hall, L. O., & Kegelmeyer, W. P. (2002). SMOTE: Synthetic minority over-sampling technique. Journal of Artificial Intelligence Research, 16, 321--357.
+Banerjee, A., Banerji, R., Berry, J., Duflo, E., Kannan, H., Mukerji, S., Shotland, M., & Walton, M. (2016). *Mainstreaming an effective intervention: Evidence from randomized evaluations of "Teaching at the Right Level" in India* (Working Paper No. 22746). National Bureau of Economic Research.
 
-Chen, C., Liaw, A., & Breiman, L. (2004). Using random forest to learn imbalanced data. University of California, Berkeley.
+Behrman, J. R., Parker, S. W., & Todd, P. E. (2009). Schooling impacts of conditional cash transfers on young children: Evidence from Mexico. *Economic Development and Cultural Change, 57*(3), 439–477.
 
-Deveaux, M. (2021, February 23). 4 classification algorithms to deal with unbalanced datasets. Medium. <https://marc-deveaux.medium.com/4-classification-algorithms-to-deal-with-unbalanced-datasets-d034f575cd6a>
+Bisset, S., Fournier, M., Janosz, M., & Pagani, L. (2013). Predicting academic and cognitive outcomes from weight status trajectories during childhood. *International Journal of Obesity, 37*, 1–8. <https://doi.org/10.1038/ijo.2012.106>
+
+Cahuana Lipa, R., Perez Ccasa, M. E., Machaca Mamani, J. C., Perez Ccasa, E., & Cárdenas Solano, J. (2024). Conditional cash transfer program, child malnutrition and school dropout in the high Andean region of Peru. *Sapienza: International Journal of Interdisciplinary Studies, 5*(4), e24063. <https://doi.org/10.51798/sijis.v5i4.830>
+
+Chawla, N. V., Bowyer, K. W., Hall, L. O., & Kegelmeyer, W. P. (2002). SMOTE: Synthetic minority over-sampling technique. *Journal of Artificial Intelligence Research, 16*, 321–357.
+
+Chen, C., Liaw, A., & Breiman, L. (2004). *Using random forest to learn imbalanced data*. University of California, Berkeley.
+
+Deveaux, M. (2021, February 23). 4 classification algorithms to deal with unbalanced datasets. *Medium*. <https://marc-deveaux.medium.com/4-classification-algorithms-to-deal-with-unbalanced-datasets-d034f575cd6a>
 
 Francess, D., Azumah, F., Adjei, E., & Nachinaab, J. (2017). The effects of family size on the investment of child education, case study at Atonsu-Buokro, Kumasi.
 
 Gansaonré, R., Moore, L., Bleau, L.-P., Kobiane, J.-F., & Haddad, S. (2021). Stunting, age at school entry and academic performance in developing countries: A systematic review and meta-analysis. <https://doi.org/10.21203/rs.3.rs-606866/v1>
 
-Hastie, T., Tibshirani, R., & Friedman, J. H. (2009). The elements of statistical learning: Data mining, inference, and prediction (2nd ed.). Springer.
+Hastie, T., Tibshirani, R., & Friedman, J. H. (2009). *The elements of statistical learning: Data mining, inference, and prediction* (2nd ed.). Springer.
 
-He, H., & Garcia, E. A. (2009). Learning from imbalanced data. IEEE Transactions on Knowledge and Data Engineering, 21(9), 1263--1284.
+He, H., & Garcia, E. A. (2009). Learning from imbalanced data. *IEEE Transactions on Knowledge and Data Engineering, 21*(9), 1263–1284.
 
-Kuhn, M., & Johnson, K. (2013). Applied predictive modeling. Springer.
+Kuhn, M., & Johnson, K. (2013). *Applied predictive modeling*. Springer.
 
-National Dropout Prevention Center/Network. (2002). How to identify students at risk of dropping out. <https://dropoutprevention.org/wp-content/uploads/2015/10/SS02HowtoIdentify.pdf>
+Machine learning predicts upper secondary education dropout as early as the end of primary school. (2024). *Scientific Reports*. <https://www.nature.com/articles/s41598-024-63629-0>
 
-Ozturk, I. (2001). The role of education in economic development: A theoretical perspective. SSRN Electronic Journal. <https://doi.org/10.2139/ssrn.1137541>
+Miguel, E., & Kremer, M. (2004). Worms: Identifying impacts on education and health in the presence of treatment externalities. *Econometrica, 72*(1), 159–217.
 
-UK Data Service. (n.d.). Data catalogue series 2000060. <https://datacatalogue.ukdataservice.ac.uk/series/series/2000060>
+National Dropout Prevention Center/Network. (2002). *How to identify students at risk of dropping out*. <https://dropoutprevention.org/wp-content/uploads/2015/10/SS02HowtoIdentify.pdf>
 
-UNESCO. (2021). Global education monitoring report 2021/2: Non-state actors in education: Who chooses? Who loses? UNESCO Publishing. <https://unesdoc.unesco.org/ark:/48223/pf0000379875>
+Ozturk, I. (2001). The role of education in economic development: A theoretical perspective. *SSRN Electronic Journal*. <https://doi.org/10.2139/ssrn.1137541>
 
-UNICEF. (2022). Secondary education. <https://data.unicef.org/topic/education/secondary-education/>
+Schultz, T. P. (2004). School subsidies for the poor: Evaluating a Mexican strategy for reducing poverty. *Journal of Development Economics, 74*(2), 199–250.
 
-Wangu, G. J., Odek, A., & Marima, E. (2024). Social-economic factors and secondary school dropout among girls in Mariani Ward, Tharaka-Nithi County, Kenya. African Journal of Empirical Research, 5(4), 520--534. <https://ajernet.net>
+UK Data Service. (n.d.). *Data catalogue series 2000060*. <https://datacatalogue.ukdataservice.ac.uk/series/series/2000060>
 
-Young Lives. (n.d.). Data and research. <https://www.younglives.org.uk/data-research>
+UNESCO. (2021). *Global education monitoring report 2021/2: Non-state actors in education: Who chooses? Who loses?* UNESCO Publishing. <https://unesdoc.unesco.org/ark:/48223/pf0000379875>
+
+UNICEF. (2022). *Secondary education*. <https://data.unicef.org/topic/education/secondary-education/>
+
+Vermeersch, C., & Kremer, M. (2004). *School meals, educational achievement and school competition: Evidence from a randomized evaluation* (Policy Research Working Paper No. 3523). World Bank.
+
+Wangu, G. J., Odek, A., & Marima, E. (2024). Social-economic factors and secondary school dropout among girls in Mariani Ward, Tharaka-Nithi County, Kenya. *African Journal of Empirical Research, 5*(4), 520–534. <https://ajernet.net>
+
+World Bank. (2009). *Conditional cash transfers: Reducing present and future poverty*. Washington, DC: World Bank. <https://openknowledge.worldbank.org/server/api/core/bitstreams/c9f76e5b-ac70-50c0-ac1e-aec104bff356/content>
+
+Young Lives. (n.d.). *Data and research*. <https://www.younglives.org.uk/data-research>
+
+Zarzar Gandler, G. (2020, October 7). Training models on imbalanced data. *Towards Data Science*. <https://towardsdatascience.com/training-models-on-imbalanced-data-561fa3f842b5>
