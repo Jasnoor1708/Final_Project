@@ -59,8 +59,6 @@ This project uses data from the **Young Lives Longitudinal Study**, Younger Coho
 - `sensitivity_results.csv`  
   Output from sensitivity analysis.
 
-- `sensitivity_analysis_plot.png`  
-  Visualization of sensitivity analysis results.
 
 ### Reproducibility
 - `Final_Project.Rproj`  
